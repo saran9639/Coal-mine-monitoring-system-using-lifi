@@ -1,0 +1,101 @@
+#include <LiquidCrystal.h>
+LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+const int REDD=8;
+const int LDR=9;
+const int BUZ=11;    
+int i=0;
+unsigned long duration=0;
+void setup() 
+{
+  lcd.begin(16, 2);  
+  lcd.setCursor(0,0);
+  lcd.print("     WELCOME    "); 
+  lcd.setCursor(0,1);
+  lcd.print("                ");    
+  Serial.begin(9600);
+  pinMode(9, INPUT);  //LDR
+  pinMode(REDD,OUTPUT); 
+  pinMode(BUZ,OUTPUT); 
+
+  digitalWrite(REDD,LOW);  
+  digitalWrite(BUZ,LOW);
+  Serial.println("WELCOME");  
+}
+void loop()
+{ for(i=0;i<=2;i++)
+  {
+  duration = pulseIn(9, HIGH);  //WAITS FOR LOW TO HIGH TO LOW
+  Serial.println(duration);   //MICRO SECONDS
+  delay(500);
+  }
+  if (duration > 120000 && duration < 150000)
+  {
+  Serial.println("Received: 1          ");
+  lcd.setCursor(0,0);
+  lcd.print("ALERT!HIGH TEMP "); 
+  lcd.setCursor(0,1);
+  lcd.print("DETECT IN MINE12");  
+  digitalWrite(REDD,HIGH);
+  digitalWrite(BUZ,HIGH); 
+  delay(10000); 
+  lcd.setCursor(0,0);
+  lcd.print("     WELCOME    "); 
+  lcd.setCursor(0,1);
+  lcd.print("                ");   
+  digitalWrite(REDD,LOW);  
+  digitalWrite(BUZ,LOW);     
+  }
+  else if (duration > 30000 && duration < 45000)
+  {
+  Serial.println("Received: 2          ");
+  lcd.setCursor(0,0);
+  lcd.print("ALERT!HIGH HUMID"); 
+  lcd.setCursor(0,1);
+  lcd.print("DETECT IN MINE12");  
+  digitalWrite(REDD,HIGH);
+  digitalWrite(BUZ,HIGH); 
+  delay(10000); 
+  lcd.setCursor(0,0);
+  lcd.print("     WELCOME    "); 
+  lcd.setCursor(0,1);
+  lcd.print("                ");   
+  digitalWrite(REDD,LOW);  
+  digitalWrite(BUZ,LOW);     
+  }
+  else if (duration > 60000 && duration < 80000)
+  {
+  Serial.println("Received: 3          ");
+  lcd.setCursor(0,0);
+  lcd.print("ALERT!VIBRATIONS"); 
+  lcd.setCursor(0,1);
+  lcd.print("DETECT IN MINE12");  
+  digitalWrite(REDD,HIGH);
+  digitalWrite(BUZ,HIGH); 
+  delay(10000); 
+  lcd.setCursor(0,0);
+  lcd.print("     WELCOME    "); 
+  lcd.setCursor(0,1);
+  lcd.print("                ");   
+  digitalWrite(REDD,LOW);  
+  digitalWrite(BUZ,LOW);    
+  }
+  else if (duration > 82000 && duration < 100000)
+  {
+  Serial.println("Received: 4          ");
+  lcd.setCursor(0,0);
+  lcd.print("ALERT!HARM GASES"); 
+  lcd.setCursor(0,1);
+  lcd.print("DETECT IN MINE12");  
+  digitalWrite(REDD,HIGH);
+  digitalWrite(BUZ,HIGH); 
+  delay(10000); 
+  lcd.setCursor(0,0);
+  lcd.print("     WELCOME    "); 
+  lcd.setCursor(0,1);
+  lcd.print("                ");   
+  digitalWrite(REDD,LOW);  
+  digitalWrite(BUZ,LOW);    
+  }   
+ 
+ 
+}
