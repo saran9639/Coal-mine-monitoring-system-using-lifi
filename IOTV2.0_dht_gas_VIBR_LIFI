@@ -1,0 +1,257 @@
+#include <LiquidCrystal.h>
+LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+#include <stdlib.h>
+#include <DHT.h>
+#define DHTPIN 9         // DHT data pin connected to Arduino pin 5
+#define DHTTYPE DHT11     // DHT11 (DHT Sensor Type )
+DHT dht(DHTPIN, DHTTYPE); // Initialize the DHT sensor
+#define SSID "PROJECT"     // "WiFi Name"
+#define PASS "12345678"       // "Password"
+#define IP "184.106.153.149"// thingspeak.com ip
+String msg = "GET /update?key=7EQ9FIMOFPEL17KF"; //change it with your key...
+float t;
+float h;
+String tempC;
+int error;
+const int LED=8;
+const int GAS=10;
+const int BUZ=11;
+const int VIBR=12;
+const int REDD=13;
+int flag1=0;
+int flag2=0;
+int i=0;
+int j=0;
+int k=0;
+void setup()
+{
+  lcd.begin(16, 2);
+  lcd.setCursor(0,0);
+  lcd.print("GAS:    HUM:    ");
+  lcd.setCursor(0,1);
+  lcd.print("VIBR:     T:    ");    
+  pinMode(GAS,INPUT);
+  pinMode(VIBR,INPUT); 
+  pinMode(LED,OUTPUT); 
+  pinMode(REDD,OUTPUT);   
+  pinMode(BUZ,OUTPUT);
+  digitalWrite(BUZ,LOW);   
+  digitalWrite(REDD,LOW);  
+  digitalWrite(8,LOW);        
+  dht.begin();  
+  Serial.begin(115200); // use default 115200.
+  Serial.println("AT");
+  delay(5000);
+  if(Serial.find("OK")){
+    connectWiFi();
+  }
+}
+void loop()
+{
+start:  
+  for(j=0;j<=20;j++)
+  {
+  for(i=0;i<=10;i++)
+  {    
+  delay(100);
+  h = dht.readHumidity();
+  t = dht.readTemperature();
+//  Serial.println(h);  
+//  Serial.println(t);    
+  lcd.setCursor(12,0);  
+  lcd.print(h);  
+  lcd.setCursor(14,0);  
+  lcd.print("% ");  
+  lcd.setCursor(12,1);  
+  lcd.print(t);  
+  lcd.setCursor(14,1);  
+  lcd.print("C ");  
+  if(t>37)
+  {
+    for(k=0;k<=10;k++)
+    {
+    digitalWrite(BUZ,HIGH);   
+    digitalWrite(REDD,HIGH);  
+    digitalWrite(8,HIGH);
+    delay(120);
+    digitalWrite(8,LOW);
+    delay(1000); 
+    }
+  //  goto xit;     
+  }
+  if(h>70)
+  {
+    for(k=0;k<=10;k++)
+    {
+    digitalWrite(BUZ,HIGH);   
+    digitalWrite(REDD,HIGH);  
+    digitalWrite(8,HIGH);
+    delay(40);
+    digitalWrite(8,LOW);
+    delay(1000);  
+    }
+  //  goto xit;     
+  }  
+  if(digitalRead(VIBR)==HIGH)
+  {
+  lcd.setCursor(5,1);  
+  lcd.print("ON ");    
+//  Serial.println("DARK");
+    flag1=1;  
+    for(k=0;k<=10;k++)
+    {
+    digitalWrite(BUZ,HIGH);   
+    digitalWrite(REDD,HIGH);  
+    digitalWrite(8,HIGH);
+    delay(70);
+    digitalWrite(8,LOW);
+    delay(1000);  
+    }
+  //  goto xit;     
+  }
+  else
+  {
+  lcd.setCursor(5,1);  
+  lcd.print("OFF");  
+// Serial.println("DAY LIGHT");
+  flag1=0;
+  }
+    
+  if(digitalRead(GAS)==LOW)
+  {
+  lcd.setCursor(4,0);  
+  lcd.print("YES");    
+//  Serial.println("HARMFUL GASES");
+    flag2=1; 
+    for(k=0;k<=10;k++)
+    {
+    digitalWrite(BUZ,HIGH);   
+    digitalWrite(REDD,HIGH);  
+    digitalWrite(8,HIGH);
+    delay(90);
+    digitalWrite(8,LOW);
+    delay(1000);  
+    }
+  //  goto xit;     
+  }
+  else
+  {
+  lcd.setCursor(4,0);  
+  lcd.print("NO ");  
+//  Serial.println("NO GASES");
+  flag2=0;
+  }
+  }
+  }
+xit:  
+  lcd.clear();  
+  lcd.setCursor(0,0);
+  lcd.print("CLOUD UPDATING.."); 
+  delay(1000);
+   updatedata();
+  lcd.setCursor(0,0);
+  lcd.print("GAS:    HUM:    ");
+  lcd.setCursor(0,1);
+  lcd.print("VIBR:     T:    ");  
+  digitalWrite(BUZ,LOW);   
+  digitalWrite(REDD,LOW);    
+   if (error==1){
+
+    goto start;
+   }  
+
+ 
+
+}
+ void updatedata(){
+
+  String cmd = "AT+CIPSTART=\"TCP\",\"";
+
+  cmd += IP;
+
+  cmd += "\",80";
+
+  Serial.println(cmd);
+
+  delay(2000);
+
+  if(Serial.find("Error")){
+
+    return;
+
+  }
+
+  cmd = msg ;
+
+  cmd += "&field1=";  
+
+  cmd += t;
+
+  cmd += "&field2="; 
+
+  cmd += h;
+
+  cmd += "&field3="; 
+
+  cmd += flag1;
+
+  cmd += "&field4="; 
+
+  cmd += flag2;  
+
+ 
+  cmd += "\r\n";
+
+  Serial.print("AT+CIPSEND=");
+
+  Serial.println(cmd.length());
+
+  if(Serial.find(">")){
+
+    Serial.print(cmd);
+
+  }
+
+  else{
+
+    Serial.println("AT+CIPCLOSE");
+
+    //Resend...
+
+    error=1;
+
+  }
+
+}
+
+  boolean connectWiFi(){
+
+  Serial.println("AT+CWMODE=1");
+
+  delay(2000);
+
+  String cmd="AT+CWJAP=\"";
+
+  cmd+=SSID;
+
+  cmd+="\",\"";
+
+  cmd+=PASS;
+
+  cmd+="\"";
+
+  Serial.println(cmd);
+
+  delay(5000);
+
+  if(Serial.find("OK")){
+
+    return true;
+
+  }else{
+
+    return false;
+
+  }
+
+}
